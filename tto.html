@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Jump Game</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .game-container {
+            position: relative;
+            width: 600px;
+            height: 200px;
+            border: 2px solid black;
+            margin: auto;
+            overflow: hidden;
+            background-color: #f4f4f4;
+        }
+        .dino {
+            width: 40px;
+            height: 40px;
+            background-color: green;
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+        }
+        .obstacle {
+            width: 20px;
+            height: 40px;
+            background-color: red;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            animation: moveObstacle 2s linear infinite;
+        }
+        .flying-object {
+            width: 30px;
+            height: 30px;
+            background-color: blue;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            animation: moveFlyingObject 3s linear infinite;
+        }
+        .pi-number {
+            position: absolute;
+            bottom: 10px;
+            font-size: 20px;
+            color: black;
+            animation: moveNumber 3s linear infinite;
+        }
+        .score {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+        @keyframes moveObstacle {
+            from { right: 0; }
+            to { right: 100%; }
+        }
+        @keyframes moveFlyingObject {
+            from { right: 0; }
+            to { right: 100%; }
+        }
+        @keyframes moveNumber {
+            from { right: 0; }
+            to { right: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Dino Jump Game</h1>
+    <p>Press Space to Jump</p>
+    <p class="score">Score: <span id="score">0</span></p>
+    <div class="game-container" id="gameContainer">
+        <div class="dino" id="dino"></div>
+        <div class="obstacle" id="obstacle"></div>
+        <div class="flying-object" id="flyingObject"></div>
+    </div>
+    <script>
+        const dino = document.getElementById("dino");
+        const obstacle = document.getElementById("obstacle");
+        const flyingObject = document.getElementById("flyingObject");
+        const scoreElement = document.getElementById("score");
+        const gameContainer = document.getElementById("gameContainer");
+        let isJumping = false;
+        let score = 0;
+        let piDigits = "314159265358979323846264338327950288419716939937510".split("");
+        let piIndex = 0;
+
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space" && !isJumping) {
+                jump();
+            }
+        });
+
+        function jump() {
+            isJumping = true;
+            let position = 0;
+            let upInterval = setInterval(() => {
+                if (position >= 100) {
+                    clearInterval(upInterval);
+                    let downInterval = setInterval(() => {
+                        if (position <= 0) {
+                            clearInterval(downInterval);
+                            isJumping = false;
+                        }
+                        position -= 5;
+                        dino.style.bottom = position + "px";
+                    }, 20);
+                }
+                position += 5;
+                dino.style.bottom = position + "px";
+            }, 20);
+        }
+
+        function checkCollision() {
+            let dinoRect = dino.getBoundingClientRect();
+            let obstacleRect = obstacle.getBoundingClientRect();
+            let flyingObjectRect = flyingObject.getBoundingClientRect();
+            let piNumbers = document.querySelectorAll(".pi-number");
+
+            if (
+                (dinoRect.right > obstacleRect.left &&
+                dinoRect.left < obstacleRect.right &&
+                dinoRect.bottom > obstacleRect.top) ||
+                (dinoRect.right > flyingObjectRect.left &&
+                dinoRect.left < flyingObjectRect.right &&
+                dinoRect.top < flyingObjectRect.bottom)
+            ) {
+                alert("Game Over! Your Score: " + score);
+                location.reload();
+            }
+
+            piNumbers.forEach(number => {
+                let numberRect = number.getBoundingClientRect();
+                if (
+                    dinoRect.right > numberRect.left &&
+                    dinoRect.left < numberRect.right &&
+                    dinoRect.bottom > numberRect.top
+                ) {
+                    score += 10;
+                    number.remove();
+                }
+            });
+        }
+
+        function increaseScore() {
+            score++;
+            scoreElement.textContent = score;
+        }
+
+        function generatePiNumber() {
+            if (piIndex < piDigits.length) {
+                let number = document.createElement("div");
+                number.classList.add("pi-number");
+                number.textContent = piDigits[piIndex];
+                number.style.right = "0px";
+                number.style.bottom = "10px";
+                gameContainer.appendChild(number);
+                piIndex++;
+
+                setTimeout(() => {
+                    number.remove();
+                }, 3000);
+            }
+        }
+
+        setInterval(checkCollision, 50);
+        setInterval(increaseScore, 1000);
+        setInterval(generatePiNumber, 2000);
+    </script>
+</body>
+</html>
